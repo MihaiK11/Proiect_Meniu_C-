@@ -36,6 +36,12 @@ int dayInMonth(int month){
     }
     return rezult;
 }
+bool is_number(const std::string& s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}
 string concatenateString(rezervare persoana){
     string rez;
     string data;
@@ -68,7 +74,7 @@ string getfield(string lineMain, int num){
             return tok;
         line = line.substr(line.find(",") + 1);
     }
-    return "&";
+    return "";
 }
 
 bool file_exists(const char *filename)
@@ -84,14 +90,14 @@ bool file_exists(const char *filename)
 }
 
 void writeInDatabase(struct rezervare persoana){
-    std::ofstream fpt;
-    std::string row;
+    ofstream fpt;
+    string row;
     if(file_exists("../rezervare.csv")){
-        fpt.open("../rezervare.csv", std::ios::app);
+        fpt.open("../rezervare.csv", ios::app);
         fpt << "\n" << persoana.getPrenume() << "," << persoana.getNume() << "," << persoana.getData() << "." << persoana.getLuna() << "," << persoana.getVaccin() << ",";
         fpt.close();
     } else{
-        fpt.open("../rezervare.csv", std::ios::app);
+        fpt.open("../rezervare.csv", ios::app);
         fpt << "Prenume,Nume,Data,Vaccin,";
         fpt << "\n" << persoana.getPrenume() << "," << persoana.getNume() << "," << persoana.getData() << "." << persoana.getLuna() << "," << persoana.getVaccin() << ",";
         fpt.close();
@@ -119,43 +125,39 @@ int checkIfVaccinInData(std::string vaccin){
 }
 
 string chooseCenter(string vaccin){
-    std::fstream fp;
+    ifstream fp;
     string row,center;
     string avaliableCenter[9];
     int i=0;
 
-    fp.open("../data.csv", std::ios::in);
-    getline(fp, row, ' ');
+    fp.open("../data.csv");
+    cin.ignore();
+    getline(fp, row);
 
-    if(!fp.eof()){std::cout << "Alegeti centrul:\n\n";}
+    if(!fp.eof()){cout << "Alegeti centrul:\n\n";}
     while (!fp.eof()) {
-        getline(fp, row, ' ');
-        if (row.find(vaccin) != NULL && i<10) {
-            int len = row.length();
-            int lenVaccin = vaccin.length();
-            row[len - lenVaccin - 1] = '\0';
+        getline(fp, row);
+        if (row.find(vaccin) != string::npos && i<10) {
             avaliableCenter[i] = row;
-            std::cout << i + 1 << "." << row << std::endl;
+            cout << i + 1 << "." << row << endl;
             i++;
         }
     }
-    std::cout << i + 1 << ".Inapoi\n";
+    cout << i + 1 << ".Inapoi\n";
 
-    char answer[20];
-    std::cin >> answer;
-    std::cout << "\x1b[1F";
-    std::cout << "\x1b[2K";
-    if (atoi(answer) == 0 || atoi(answer)>i+1){
-        while(atoi(answer) == 0 || atoi(answer)>i){
+    string answer;
+    cin >> answer;
+    if (stoi(answer) == 0 || stoi(answer)>i+1){
+        while(stoi(answer) == 0 || stoi(answer)>i){
             std::cin >> answer;
             std::cout << "\x1b[1F";
             std::cout << "\x1b[2K";
         };
-    }else if (atoi(answer) == i+1) {
+    }else if (stoi(answer) == i+1) {
         return "Back";
     }
     fp.close();
-    return avaliableCenter[atoi(answer)-1];
+    return avaliableCenter[stoi(answer)-1];
 }
 int programare(){
     system("cls");
@@ -173,34 +175,54 @@ int programare(){
     cin >> tmp;
     persoana.setVaccin(tmp);
 
+    while (!checkIfVaccinInData(persoana.getVaccin() )){
+        system("cls");
+        cout << "Not such vaccin\n\n";
+        cout << "1.Try again\n";
+        cout << "2.Main menu\n\n";
+        cin >> tmp;
+        cout << "\x1b[1F";
+        cout << "\x1b[2K";
+        if (tmp == string("2")) {
+            break;
+        }else if(tmp == string("1")){
+            system("cls");
+            cout << "Introduceti vaccinul: ";
+            cin >> tmp;
+            persoana.setVaccin(tmp);
+            cout << "\x1b[1F";
+            cout << "\x1b[2K";
+        }
+    }
 
-    if (checkIfVaccinInData(persoana.getVaccin())){
+    if (checkIfVaccinInData(persoana.getVaccin() )){
         system("cls");
         persoana.setCentrul(chooseCenter(persoana.getVaccin()) );
         system("cls");
         if (persoana.getCentrul()!="Back"){//If center exist
             time_t t = time(NULL);//Get today time
             struct tm date = *localtime(&t);
-            char readData[20];
+            string readData;
             int dataNow = date.tm_mday+1;
             int monthNow = date.tm_mon+1;
             int monthNext = date.tm_mon+2;
+
             if (monthNext > 12)monthNext-=12;
             int dataNext = dataNow-1;
-            std::cout << "Alegeti doar data " << dataNow << "." << monthNow << "-" << dataNext << "." << monthNext << std::endl;
-            std::cin >> readData;// Read date of rezervation
-            std::cout << "\x1b[1F";
-            std::cout << "\x1b[2K";
+            cout << "Alegeti doar data " << dataNow << "." << monthNow << "-" << dataNext << "." << monthNext << std::endl;
+            cin >> readData;// Read date of rezervation
+            cout << "\x1b[1F";
+            cout << "\x1b[2K";
 
-            while (atoi(readData) < 1 || atoi(readData) > dayInMonth(date.tm_mon)){
+            while (stoi(readData) < 1 || stoi(readData) > dayInMonth(date.tm_mon)){
                 system("cls");
-                std::cout << "Incorect date\n";
+                cout << "Incorect date\n";
 
-                std::cin >> readData;
-                std::cout << "\x1b[1F";
-                std::cout << "\x1b[2K";
+                cin >> readData;
+                cout << "\x1b[1F";
+                cout << "\x1b[2K";
             }
-            persoana.setData(atoi(readData));
+            persoana.setData(stoi(readData));
             if (persoana.getData() > date.tm_mday){
                 persoana.setLuna(date.tm_mon + 1);
             }else{
@@ -209,38 +231,23 @@ int programare(){
             if(persoana.getLuna() > 12){ persoana.setLuna(persoana.getLuna() -12);}
             writeInDatabase(persoana);
 
-            char s[20];
+
             system("cls");
-            HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
             SetConsoleTextAttribute(hConsole, 10);
-            std::cout << "V-ati programat cu succes\n";
+            cout << "V-ati programat cu succes\n";
             SetConsoleTextAttribute(hConsole, 7);
-            std::cout << "Numele: " << persoana.getPrenume() << " " << persoana.getNume() << "\n";
-            std::cout << "Data: " << persoana.getData() << "." << persoana.getLuna() << "." << date.tm_year+1900 << "\n";
-            std::cout << "Vaccinul: " << persoana.getVaccin() << "\n\n";
+            cout << "Numele: " << persoana.getPrenume() << " " << persoana.getNume() << "\n";
+            cout << "Data: " << persoana.getData() << "." << persoana.getLuna() << "." << date.tm_year+1900 << "\n";
+            cout << "Vaccinul: " << persoana.getVaccin() << "\n\n";
+
             SetConsoleTextAttribute(hConsole, 14);
-            std::cout << "Press 1 key to continue\n";
-            std::cin >> s;
+            cout << "Press 1 key to continue\n";
+            string s;
+            cin >> s;
+            SetConsoleTextAttribute(hConsole, 15);
         }
-    }else {
-        system("cls");
-        char answer[100];
-        std::cout << "Not such vaccin\n\n";
-        std::cout << "1.Try again\n";
-        std::cout << "2.Main menu\n\n";
-        std::cin >> answer;
-        std::cout << "\x1b[1F";
-        std::cout << "\x1b[2K";
-        while (strcmp(answer, "2")) {
-            if (!strcmp(answer, "1")) {
-                return 1;
-            } else {
-                std::cin >> answer;
-                std::cout << "\x1b[1F";
-                std::cout << "\x1b[2K";
-                }
-            }
-        }
+    }
     return 0;
 }
 void findVaccin(string vaccin){
@@ -265,7 +272,7 @@ void findVaccin(string vaccin){
     return;
 }
 rezervare* infoRezervation() {
-    rezervare* persoana = (rezervare*)malloc(sizeof(rezervare));
+    rezervare* persoana = new rezervare[1];
     int exit = 0;
     string tmp;
     time_t t = time(NULL); //Get today time
@@ -283,7 +290,7 @@ rezervare* infoRezervation() {
     cout << "Introduceti luna\n";
     cin>>tmp;
 
-    while ((stoi(tmp) < 1 || stoi(tmp) > 12) && !exit) {
+    while ((!is_number(tmp) || stoi(tmp) < 1 || stoi(tmp) > 12) && !exit) {
         system("cls");
         cout << "Incorect month\n";
         cout << "Try again or go to main menu\n";
@@ -299,14 +306,14 @@ rezervare* infoRezervation() {
     if (!exit){
         cout << "Introduceti Data\n";
         cin>>tmp;
-        while ((stoi(tmp) < 1 || stoi(tmp) > dayInMonth(persoana->getLuna())) && !exit){
+        while ((!is_number(tmp) || stoi(tmp) < 1 || stoi(tmp) > dayInMonth(persoana->getLuna())) && !exit){
             system("cls");
             cout << "Incorect date\n";
             cout << "Try again or go to main menu\n";
             cout << "*.Main menu\n";
 
             cin>>tmp;
-            if (tmp=="*")exit=1;
+            if (tmp==string("*"))exit=1;
             cout << "\x1b[1F";
             cout << "\x1b[2K";
         }
@@ -321,52 +328,54 @@ rezervare* infoRezervation() {
     return persoana;
 }
 int deleteRezervation(rezervare persoana){
-    FILE *fp,*fcopy;
+    ifstream fp;
+    ofstream fcopy;
     int deleted = 0;
-    char row[1000];
+    string row;
 
-    fp = fopen("../rezervare.csv","r");
-    fcopy = fopen("../temp.csv","w");
-    fputs("Prenume,Nume,Data,Vaccin,",fcopy);
+    fp.open("../rezervare.csv");
+    fcopy.open("../temp.csv");
+    fcopy<<"Prenume,Nume,Data,Vaccin,";
 
     //Skip names of rows
-    fgets(row, 1000, fp);
+    getline(fp, row);
 
-    while (fgets(row, 1000, fp))
+    while (getline(fp, row))
     {
         if (!deleted) {
-            char *tmp = strdup(row);
-            int isRezervare = !(getfield(tmp, 1) == persoana.getPrenume()) || (getfield(tmp, 2) == persoana.getNume()) ||
-            (getfield(tmp, 4) == persoana.getVaccin());
+            string tmp = row;
+
+            bool isRezervare = getfield(tmp, 1) == persoana.getPrenume() && getfield(tmp, 2) == persoana.getNume() &&
+            getfield(tmp, 4) == persoana.getVaccin();
+            cout<<isRezervare;
             if (!isRezervare) {
-                int size = strlen(row); //Print in file without new line
+                int size = row.length(); //Print in file without new line
                 if (!strcmp(&row[size-1],"\n")){;
                     row[size-1] = '\0';
-                    fputs("\n", fcopy);
-                    fputs(row, fcopy);
+                    fcopy<<"\n";
+                    fcopy<<row;
                 }else{
-                    fputs("\n", fcopy);
-                    fputs(row, fcopy);
+                    fcopy<<"\n";
+                    fcopy<<row;
                 }
             }
             if (isRezervare) deleted = 1;
         }else{
-            int size = strlen(row); //Print in file without new line
+            int size = row.size(); //Print in file without new line
             if (!strcmp(&row[size-1],"\n")){;
                 row[size-1] = '\0';
-                fputs("\n", fcopy);
-                fputs(row, fcopy);
+                fcopy<<"\n";
+                fcopy<<row;
             }else{
-                fputs("\n", fcopy);
-                fputs(row, fcopy);
+                fcopy<<"\n";
+                fcopy<<row;
             }
         }
     }
-    scanf("some",&row);
-    fclose(fp);
-    fclose(fcopy);
-    std::cout << remove("../rezervare.csv") << std::endl;
-    std::cout << rename("../temp.csv", "../rezervare.csv") << std::endl;
+    fp.close();
+    fcopy.close();
+    cout << remove("../rezervare.csv") << std::endl;
+    cout << rename("../temp.csv", "../rezervare.csv") << std::endl;
 
     return 0;
 }
