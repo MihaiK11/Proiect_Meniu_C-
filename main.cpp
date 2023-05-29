@@ -15,15 +15,13 @@ int main(int arg,char *argv[]){
     }else if(argv[1] == string("-find")){
         if (argv[2]!=NULL)findVaccin(argv[2]);
         else cout<<"Scrieti numele vaccinului";
+    }else if(argv[1] == string("-program")){
+        int reProgram=0;
+        reProgram = programare();
+        while(reProgram){
+            reProgram = programare();//facem reprogramarea in caz ca a aparut dificultati
+        }
     }
-
-
-//        }else if(argv[1] == "3"){
-//            int reProgram;
-//            reProgram = programare();
-//            while(reProgram){
-//                reProgram = programare();//facem reprogramarea in caz ca a aparut dificultati
-//        }
 //        }else if(argv[1] == "4"){
 //            rezervare *rezervation = infoRezervation();
 //            if(rezervation!=NULL)deleteRezervation(*rezervation);

@@ -84,14 +84,14 @@ bool file_exists(const char *filename)
 }
 
 void writeInDatabase(struct rezervare persoana){
-    std::ofstream fpt;
-    std::string row;
+    ofstream fpt;
+    string row;
     if(file_exists("../rezervare.csv")){
-        fpt.open("../rezervare.csv", std::ios::app);
+        fpt.open("../rezervare.csv", ios::app);
         fpt << "\n" << persoana.getPrenume() << "," << persoana.getNume() << "," << persoana.getData() << "." << persoana.getLuna() << "," << persoana.getVaccin() << ",";
         fpt.close();
     } else{
-        fpt.open("../rezervare.csv", std::ios::app);
+        fpt.open("../rezervare.csv", ios::app);
         fpt << "Prenume,Nume,Data,Vaccin,";
         fpt << "\n" << persoana.getPrenume() << "," << persoana.getNume() << "," << persoana.getData() << "." << persoana.getLuna() << "," << persoana.getVaccin() << ",";
         fpt.close();
@@ -119,43 +119,39 @@ int checkIfVaccinInData(std::string vaccin){
 }
 
 string chooseCenter(string vaccin){
-    std::fstream fp;
+    ifstream fp;
     string row,center;
     string avaliableCenter[9];
     int i=0;
 
-    fp.open("../data.csv", std::ios::in);
-    getline(fp, row, ' ');
+    fp.open("../data.csv");
+    cin.ignore();
+    getline(fp, row);
 
-    if(!fp.eof()){std::cout << "Alegeti centrul:\n\n";}
+    if(!fp.eof()){cout << "Alegeti centrul:\n\n";}
     while (!fp.eof()) {
-        getline(fp, row, ' ');
-        if (row.find(vaccin) != NULL && i<10) {
-            int len = row.length();
-            int lenVaccin = vaccin.length();
-            row[len - lenVaccin - 1] = '\0';
+        getline(fp, row);
+        if (row.find(vaccin) != string::npos && i<10) {
             avaliableCenter[i] = row;
-            std::cout << i + 1 << "." << row << std::endl;
+            cout << i + 1 << "." << row << endl;
             i++;
         }
     }
-    std::cout << i + 1 << ".Inapoi\n";
+    cout << i + 1 << ".Inapoi\n";
 
-    char answer[20];
-    std::cin >> answer;
-    std::cout << "\x1b[1F";
-    std::cout << "\x1b[2K";
-    if (atoi(answer) == 0 || atoi(answer)>i+1){
-        while(atoi(answer) == 0 || atoi(answer)>i){
+    string answer;
+    cin >> answer;
+    if (stoi(answer) == 0 || stoi(answer)>i+1){
+        while(stoi(answer) == 0 || stoi(answer)>i){
             std::cin >> answer;
             std::cout << "\x1b[1F";
             std::cout << "\x1b[2K";
         };
-    }else if (atoi(answer) == i+1) {
+    }else if (stoi(answer) == i+1) {
         return "Back";
     }
     fp.close();
-    return avaliableCenter[atoi(answer)-1];
+    return avaliableCenter[stoi(answer)-1];
 }
 int programare(){
     system("cls");
@@ -173,34 +169,54 @@ int programare(){
     cin >> tmp;
     persoana.setVaccin(tmp);
 
+    while (!checkIfVaccinInData(persoana.getVaccin() )){
+        system("cls");
+        cout << "Not such vaccin\n\n";
+        cout << "1.Try again\n";
+        cout << "2.Main menu\n\n";
+        cin >> tmp;
+        cout << "\x1b[1F";
+        cout << "\x1b[2K";
+        if (tmp == string("2")) {
+            break;
+        }else if(tmp == string("1")){
+            system("cls");
+            cout << "Introduceti vaccinul: ";
+            cin >> tmp;
+            persoana.setVaccin(tmp);
+            cout << "\x1b[1F";
+            cout << "\x1b[2K";
+        }
+    }
 
-    if (checkIfVaccinInData(persoana.getVaccin())){
+    if (checkIfVaccinInData(persoana.getVaccin() )){
         system("cls");
         persoana.setCentrul(chooseCenter(persoana.getVaccin()) );
         system("cls");
         if (persoana.getCentrul()!="Back"){//If center exist
             time_t t = time(NULL);//Get today time
             struct tm date = *localtime(&t);
-            char readData[20];
+            string readData;
             int dataNow = date.tm_mday+1;
             int monthNow = date.tm_mon+1;
             int monthNext = date.tm_mon+2;
+
             if (monthNext > 12)monthNext-=12;
             int dataNext = dataNow-1;
-            std::cout << "Alegeti doar data " << dataNow << "." << monthNow << "-" << dataNext << "." << monthNext << std::endl;
-            std::cin >> readData;// Read date of rezervation
-            std::cout << "\x1b[1F";
-            std::cout << "\x1b[2K";
+            cout << "Alegeti doar data " << dataNow << "." << monthNow << "-" << dataNext << "." << monthNext << std::endl;
+            cin >> readData;// Read date of rezervation
+            cout << "\x1b[1F";
+            cout << "\x1b[2K";
 
-            while (atoi(readData) < 1 || atoi(readData) > dayInMonth(date.tm_mon)){
+            while (stoi(readData) < 1 || stoi(readData) > dayInMonth(date.tm_mon)){
                 system("cls");
-                std::cout << "Incorect date\n";
+                cout << "Incorect date\n";
 
-                std::cin >> readData;
-                std::cout << "\x1b[1F";
-                std::cout << "\x1b[2K";
+                cin >> readData;
+                cout << "\x1b[1F";
+                cout << "\x1b[2K";
             }
-            persoana.setData(atoi(readData));
+            persoana.setData(stoi(readData));
             if (persoana.getData() > date.tm_mday){
                 persoana.setLuna(date.tm_mon + 1);
             }else{
@@ -209,38 +225,23 @@ int programare(){
             if(persoana.getLuna() > 12){ persoana.setLuna(persoana.getLuna() -12);}
             writeInDatabase(persoana);
 
-            char s[20];
+
             system("cls");
-            HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
             SetConsoleTextAttribute(hConsole, 10);
-            std::cout << "V-ati programat cu succes\n";
+            cout << "V-ati programat cu succes\n";
             SetConsoleTextAttribute(hConsole, 7);
-            std::cout << "Numele: " << persoana.getPrenume() << " " << persoana.getNume() << "\n";
-            std::cout << "Data: " << persoana.getData() << "." << persoana.getLuna() << "." << date.tm_year+1900 << "\n";
-            std::cout << "Vaccinul: " << persoana.getVaccin() << "\n\n";
+            cout << "Numele: " << persoana.getPrenume() << " " << persoana.getNume() << "\n";
+            cout << "Data: " << persoana.getData() << "." << persoana.getLuna() << "." << date.tm_year+1900 << "\n";
+            cout << "Vaccinul: " << persoana.getVaccin() << "\n\n";
+
             SetConsoleTextAttribute(hConsole, 14);
-            std::cout << "Press 1 key to continue\n";
-            std::cin >> s;
+            cout << "Press 1 key to continue\n";
+            string s;
+            cin >> s;
+            SetConsoleTextAttribute(hConsole, 15);
         }
-    }else {
-        system("cls");
-        char answer[100];
-        std::cout << "Not such vaccin\n\n";
-        std::cout << "1.Try again\n";
-        std::cout << "2.Main menu\n\n";
-        std::cin >> answer;
-        std::cout << "\x1b[1F";
-        std::cout << "\x1b[2K";
-        while (strcmp(answer, "2")) {
-            if (!strcmp(answer, "1")) {
-                return 1;
-            } else {
-                std::cin >> answer;
-                std::cout << "\x1b[1F";
-                std::cout << "\x1b[2K";
-                }
-            }
-        }
+    }
     return 0;
 }
 void findVaccin(string vaccin){

@@ -22,7 +22,7 @@ int rezervare::getLuna(){
     return this->lunaRezervare;
 }
 /////Setters//////////////
-void rezervare::setPrenume(string Name){
+void rezervare::setPrenume(string Prenume){
     this->Prenume = Prenume;
 }
 void rezervare::setNume(string Nume){
