@@ -16,20 +16,14 @@ int main(int arg,char *argv[]){
         if (argv[2]!=NULL)findVaccin(argv[2]);
         else cout<<"Scrieti numele vaccinului";
     }else if(argv[1] == string("-program")){
-        int reProgram=0;
-        reProgram = programare();
-        while(reProgram){
-            reProgram = programare();//facem reprogramarea in caz ca a aparut dificultati
-        }
+        programare();
+    }else if(argv[1] == string("-delete")){
+        rezervare *rezervation = infoRezervation();
+        if(rezervation!=NULL)deleteRezervation(*rezervation);
+    }else {
+        error = 1;
     }
-//        }else if(argv[1] == "4"){
-//            rezervare *rezervation = infoRezervation();
-//            if(rezervation!=NULL)deleteRezervation(*rezervation);
-//        }else {
-//            error = 1;
-//        }
-//
-//    }
+
 
     return 0;
 }

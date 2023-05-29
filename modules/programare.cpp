@@ -36,6 +36,12 @@ int dayInMonth(int month){
     }
     return rezult;
 }
+bool is_number(const std::string& s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}
 string concatenateString(rezervare persoana){
     string rez;
     string data;
@@ -68,7 +74,7 @@ string getfield(string lineMain, int num){
             return tok;
         line = line.substr(line.find(",") + 1);
     }
-    return "&";
+    return "";
 }
 
 bool file_exists(const char *filename)
@@ -266,7 +272,7 @@ void findVaccin(string vaccin){
     return;
 }
 rezervare* infoRezervation() {
-    rezervare* persoana = (rezervare*)malloc(sizeof(rezervare));
+    rezervare* persoana = new rezervare[1];
     int exit = 0;
     string tmp;
     time_t t = time(NULL); //Get today time
@@ -284,7 +290,7 @@ rezervare* infoRezervation() {
     cout << "Introduceti luna\n";
     cin>>tmp;
 
-    while ((stoi(tmp) < 1 || stoi(tmp) > 12) && !exit) {
+    while ((!is_number(tmp) || stoi(tmp) < 1 || stoi(tmp) > 12) && !exit) {
         system("cls");
         cout << "Incorect month\n";
         cout << "Try again or go to main menu\n";
@@ -300,14 +306,14 @@ rezervare* infoRezervation() {
     if (!exit){
         cout << "Introduceti Data\n";
         cin>>tmp;
-        while ((stoi(tmp) < 1 || stoi(tmp) > dayInMonth(persoana->getLuna())) && !exit){
+        while ((!is_number(tmp) || stoi(tmp) < 1 || stoi(tmp) > dayInMonth(persoana->getLuna())) && !exit){
             system("cls");
             cout << "Incorect date\n";
             cout << "Try again or go to main menu\n";
             cout << "*.Main menu\n";
 
             cin>>tmp;
-            if (tmp=="*")exit=1;
+            if (tmp==string("*"))exit=1;
             cout << "\x1b[1F";
             cout << "\x1b[2K";
         }
@@ -322,52 +328,54 @@ rezervare* infoRezervation() {
     return persoana;
 }
 int deleteRezervation(rezervare persoana){
-    FILE *fp,*fcopy;
+    ifstream fp;
+    ofstream fcopy;
     int deleted = 0;
-    char row[1000];
+    string row;
 
-    fp = fopen("../rezervare.csv","r");
-    fcopy = fopen("../temp.csv","w");
-    fputs("Prenume,Nume,Data,Vaccin,",fcopy);
+    fp.open("../rezervare.csv");
+    fcopy.open("../temp.csv");
+    fcopy<<"Prenume,Nume,Data,Vaccin,";
 
     //Skip names of rows
-    fgets(row, 1000, fp);
+    getline(fp, row);
 
-    while (fgets(row, 1000, fp))
+    while (getline(fp, row))
     {
         if (!deleted) {
-            char *tmp = strdup(row);
-            int isRezervare = !(getfield(tmp, 1) == persoana.getPrenume()) || (getfield(tmp, 2) == persoana.getNume()) ||
-            (getfield(tmp, 4) == persoana.getVaccin());
+            string tmp = row;
+
+            bool isRezervare = getfield(tmp, 1) == persoana.getPrenume() && getfield(tmp, 2) == persoana.getNume() &&
+            getfield(tmp, 4) == persoana.getVaccin();
+            cout<<isRezervare;
             if (!isRezervare) {
-                int size = strlen(row); //Print in file without new line
+                int size = row.length(); //Print in file without new line
                 if (!strcmp(&row[size-1],"\n")){;
                     row[size-1] = '\0';
-                    fputs("\n", fcopy);
-                    fputs(row, fcopy);
+                    fcopy<<"\n";
+                    fcopy<<row;
                 }else{
-                    fputs("\n", fcopy);
-                    fputs(row, fcopy);
+                    fcopy<<"\n";
+                    fcopy<<row;
                 }
             }
             if (isRezervare) deleted = 1;
         }else{
-            int size = strlen(row); //Print in file without new line
+            int size = row.size(); //Print in file without new line
             if (!strcmp(&row[size-1],"\n")){;
                 row[size-1] = '\0';
-                fputs("\n", fcopy);
-                fputs(row, fcopy);
+                fcopy<<"\n";
+                fcopy<<row;
             }else{
-                fputs("\n", fcopy);
-                fputs(row, fcopy);
+                fcopy<<"\n";
+                fcopy<<row;
             }
         }
     }
-    scanf("some",&row);
-    fclose(fp);
-    fclose(fcopy);
-    std::cout << remove("../rezervare.csv") << std::endl;
-    std::cout << rename("../temp.csv", "../rezervare.csv") << std::endl;
+    fp.close();
+    fcopy.close();
+    cout << remove("../rezervare.csv") << std::endl;
+    cout << rename("../temp.csv", "../rezervare.csv") << std::endl;
 
     return 0;
 }
