@@ -9,7 +9,7 @@ using namespace std;
 void start();
 //
 int programare();
-void findVaccin(string);
+void findVaccin(string,bool);
 //**********to delete*******
 void writeInDatabase(rezervare);
 

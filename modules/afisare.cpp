@@ -3,10 +3,15 @@
 #include <cstdlib>
 #include <string>
 using namespace std;
-void showCenters(){
-    std::cout << "Centrele:\n";
+void showCenters(bool fromExe){
+    string answer;
+    system("cls");
+    cout << "Centrele:\n";
     readAndShowData();
-
+    if (fromExe){
+        cout<<"\n\n*.Enter any key to return to main menu\n\n";
+        cin>>answer;
+    }
     return;
 }
 int readAndShowData(){

@@ -250,11 +250,16 @@ int programare(){
     }
     return 0;
 }
-void findVaccin(string vaccin){
+void findVaccin(string vaccin,bool fromExe){
     system("cls");
     int hasVaccin,error=0;
-    std::cout << "Introduceti numele vaccinului\n";
-    system("cls");
+
+    if (fromExe){
+        cout << "Introduceti numele vaccinului\n";
+        cin>>vaccin;
+        system("cls");
+    }
+
     hasVaccin = checkIfVaccinInData(vaccin);
 
     char answer[20];
@@ -268,6 +273,10 @@ void findVaccin(string vaccin){
         SetConsoleTextAttribute(hConsole, 12);
         std::cout << "Vaccinul nu a fost gasit\n\n";
         SetConsoleTextAttribute(hConsole, 15);
+    }
+    if (fromExe){
+        cout<<"*.Enter any key to return to main menu\n\n";
+        cin>>answer;
     }
     return;
 }
